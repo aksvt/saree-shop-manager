@@ -1,0 +1,1995 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Saree Shop">
+<meta name="theme-color" content="#6B0F1A">
+<meta name="description" content="साड़ी दुकान के लिए बिक्री, स्टॉक और ग्राहक management">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<title>मनभावन वस्त्रालय — Shop Manager</title>
+<link href="https://fonts.googleapis.com/css2?family=Tiro+Devanagari+Hindi&family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+:root {
+  --maroon:      #6B0F1A;
+  --safe-top:    env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --maroon-dark: #4A0812;
+  --maroon-mid:  #8B1A2A;
+  --maroon-soft: #B5384A;
+  --gold:        #C9972E;
+  --gold-light:  #F4E4B0;
+  --gold-pale:   #FFF8E7;
+  --cream:       #FDF6EE;
+  --blush:       #FFF0F3;
+  --blush-dark:  #FAD7DE;
+  --white:       #FFFFFF;
+  --text-dark:   #1C0008;
+  --text-body:   #3D1020;
+  --text-muted:  #8A5060;
+  --border:      #E8C5CC;
+  --green:       #1E6B3C;
+  --green-light: #E8F5EE;
+  --red:         #C0392B;
+  --red-light:   #FDECEA;
+  --blue:        #1A4A7A;
+  --blue-light:  #EAF2FB;
+  --shadow:      0 2px 16px rgba(107,15,26,0.10);
+  --shadow-lg:   0 8px 32px rgba(107,15,26,0.15);
+  --radius:      12px;
+  --radius-sm:   8px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--cream);
+  color: var(--text-dark);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── HEADER ── */
+.app-header {
+  background: linear-gradient(135deg, var(--maroon-dark) 0%, var(--maroon) 60%, var(--maroon-mid) 100%);
+  color: white;
+  padding: 0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 4px 20px rgba(74,8,18,0.4);
+  padding-top: var(--safe-top);
+}
+.header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px 8px;
+}
+.header-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.header-logo {
+  width: 40px; height: 40px;
+  background: var(--gold);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+.header-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+.header-sub {
+  font-size: 11px;
+  opacity: 0.75;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 300;
+}
+.header-date {
+  text-align: right;
+  font-size: 11px;
+  opacity: 0.8;
+  line-height: 1.5;
+}
+.gold-bar {
+  height: 3px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+}
+
+/* ── TABS ── */
+.tab-bar {
+  display: flex;
+  background: var(--maroon-dark);
+  overflow-x: auto;
+  scrollbar-width: none;
+  border-bottom: 2px solid rgba(201,151,46,0.3);
+}
+.tab-bar::-webkit-scrollbar { display: none; }
+.tab-btn {
+  flex: none;
+  padding: 10px 14px;
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.55);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  border-bottom: 3px solid transparent;
+  transition: all 0.2s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+.tab-btn .tab-icon { font-size: 16px; }
+.tab-btn.active {
+  color: var(--gold);
+  border-bottom-color: var(--gold);
+}
+.tab-btn:hover { color: white; }
+
+/* ── MAIN CONTENT ── */
+.main { padding: 16px; max-width: 600px; margin: 0 auto; }
+.page { display: none; }
+.page.active { display: block; }
+
+/* ── CARDS ── */
+.card {
+  background: white;
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 14px;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+}
+.card-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 15px;
+  color: var(--maroon);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.card-title::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* ── STAT BOXES ── */
+.stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+.stat-box {
+  background: white;
+  border-radius: var(--radius);
+  padding: 14px 12px;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+  text-align: center;
+}
+.stat-box.highlight { background: var(--maroon); color: white; border-color: var(--maroon); }
+.stat-box.gold { background: var(--gold); color: var(--maroon-dark); border-color: var(--gold); }
+.stat-label { font-size: 10px; opacity: 0.7; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+.stat-value { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; line-height: 1; }
+.stat-sub { font-size: 10px; margin-top: 3px; opacity: 0.75; }
+
+/* ── PROGRESS BAR ── */
+.progress-wrap { margin: 10px 0; }
+.progress-label { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 5px; color: var(--text-muted); }
+.progress-bar { height: 10px; background: var(--blush-dark); border-radius: 99px; overflow: hidden; }
+.progress-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--maroon), var(--gold)); transition: width 0.6s ease; }
+.progress-fill.over { background: linear-gradient(90deg, var(--green), #27ae60); }
+
+/* ── FORMS ── */
+.form-group { margin-bottom: 12px; }
+.form-label { font-size: 12px; font-weight: 500; color: var(--text-muted); margin-bottom: 5px; display: block; }
+.form-input, .form-select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  color: var(--text-dark);
+  background: white;
+  transition: border-color 0.2s;
+  -webkit-appearance: none;
+}
+.form-input:focus, .form-select:focus {
+  outline: none;
+  border-color: var(--maroon);
+  box-shadow: 0 0 0 3px rgba(107,15,26,0.08);
+}
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+/* ── BUTTONS ── */
+.btn {
+  padding: 11px 18px;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.btn-primary { background: var(--maroon); color: white; }
+.btn-primary:hover { background: var(--maroon-dark); transform: translateY(-1px); box-shadow: var(--shadow); }
+.btn-gold { background: var(--gold); color: var(--maroon-dark); font-weight: 600; }
+.btn-gold:hover { background: #b8871a; }
+.btn-green { background: var(--green); color: white; }
+.btn-outline { background: transparent; border: 1.5px solid var(--maroon); color: var(--maroon); }
+.btn-sm { padding: 7px 12px; font-size: 12px; }
+.btn-block { width: 100%; justify-content: center; }
+
+/* ── BADGES ── */
+.badge { display: inline-block; padding: 2px 8px; border-radius: 99px; font-size: 10px; font-weight: 600; }
+.badge-red { background: var(--red-light); color: var(--red); }
+.badge-green { background: var(--green-light); color: var(--green); }
+.badge-gold { background: var(--gold-pale); color: var(--gold); }
+.badge-blue { background: var(--blue-light); color: var(--blue); }
+
+/* ── LISTS ── */
+.list-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+.list-item:last-child { border-bottom: none; }
+.list-icon {
+  width: 38px; height: 38px;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+.list-info { flex: 1; min-width: 0; }
+.list-name { font-weight: 500; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.list-sub { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
+.list-right { text-align: right; flex-shrink: 0; }
+.list-amount { font-family: 'Playfair Display', serif; font-size: 15px; color: var(--maroon); }
+.list-date { font-size: 10px; color: var(--text-muted); }
+
+/* ── MOTIVATIONAL BANNER ── */
+.quote-banner {
+  background: linear-gradient(135deg, var(--maroon) 0%, var(--maroon-mid) 100%);
+  color: white;
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  margin-bottom: 14px;
+  position: relative;
+  overflow: hidden;
+}
+.quote-banner::before {
+  content: '❝';
+  position: absolute;
+  top: -10px; right: 10px;
+  font-size: 60px;
+  opacity: 0.1;
+  font-family: serif;
+}
+.quote-text { font-size: 13px; line-height: 1.6; font-style: italic; }
+.quote-sub { font-size: 10px; margin-top: 6px; opacity: 0.65; }
+
+/* ── ALERT BOX ── */
+.alert { padding: 10px 14px; border-radius: var(--radius-sm); margin-bottom: 10px; font-size: 12px; }
+.alert-warning { background: var(--gold-pale); border-left: 3px solid var(--gold); color: #7A4500; }
+.alert-success { background: var(--green-light); border-left: 3px solid var(--green); color: var(--green); }
+.alert-danger  { background: var(--red-light); border-left: 3px solid var(--red); color: var(--red); }
+.alert-info    { background: var(--blue-light); border-left: 3px solid var(--blue); color: var(--blue); }
+
+/* ── SECTION TITLE ── */
+.section-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 17px;
+  color: var(--maroon);
+  margin-bottom: 14px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--gold-light);
+}
+
+/* ── WHATSAPP TEMPLATE ── */
+.wa-template {
+  background: #E8F5E9;
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  margin-bottom: 10px;
+  border-left: 3px solid #25D366;
+  position: relative;
+}
+.wa-template-title { font-size: 11px; font-weight: 600; color: #1B5E20; margin-bottom: 6px; }
+.wa-template-body { font-size: 12px; color: #2E7D32; line-height: 1.6; white-space: pre-wrap; }
+.wa-copy-btn {
+  position: absolute;
+  top: 10px; right: 10px;
+  background: #25D366;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 11px;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+}
+
+/* ── FESTIVAL CARD ── */
+.fest-card {
+  background: white;
+  border-radius: var(--radius);
+  padding: 14px;
+  margin-bottom: 10px;
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.fest-emoji { font-size: 28px; flex-shrink: 0; }
+.fest-info { flex: 1; }
+.fest-name { font-weight: 600; font-size: 14px; }
+.fest-date { font-size: 11px; color: var(--text-muted); }
+.fest-days { font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 99px; flex-shrink: 0; }
+.fest-days.soon { background: var(--red-light); color: var(--red); }
+.fest-days.near { background: var(--gold-pale); color: #7A4500; }
+.fest-days.far  { background: var(--green-light); color: var(--green); }
+
+/* ── QUICK ADD MODAL ── */
+.modal-overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(74,8,18,0.5);
+  z-index: 200;
+  align-items: flex-end;
+  justify-content: center;
+}
+.modal-overlay.open { display: flex; }
+.modal-sheet {
+  background: white;
+  border-radius: 20px 20px 0 0;
+  padding: 20px 16px 32px;
+  width: 100%;
+  max-width: 600px;
+  animation: slideUp 0.3s ease;
+}
+@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+.modal-handle { width: 40px; height: 4px; background: var(--border); border-radius: 99px; margin: 0 auto 16px; }
+.modal-title { font-family: 'Playfair Display', serif; font-size: 18px; color: var(--maroon); margin-bottom: 16px; }
+
+/* ── FAB ── */
+.fab {
+  position: fixed;
+  bottom: 24px; right: 20px;
+  width: 56px; height: 56px;
+  background: linear-gradient(135deg, var(--maroon), var(--maroon-mid));
+  color: white;
+  border: none;
+  border-radius: 50%;
+  font-size: 24px;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(107,15,26,0.4);
+  z-index: 150;
+  transition: transform 0.2s;
+  display: flex; align-items: center; justify-content: center;
+}
+.fab:hover { transform: scale(1.1); }
+.fab-label {
+  position: fixed;
+  bottom: 30px; right: 84px;
+  background: var(--maroon-dark);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.fab:hover + .fab-label { opacity: 1; }
+
+/* ── WEEKLY TABLE ── */
+.weekly-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.weekly-table th {
+  background: var(--maroon);
+  color: white;
+  padding: 8px 10px;
+  text-align: left;
+  font-weight: 500;
+}
+.weekly-table td { padding: 8px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+.weekly-table tr:nth-child(even) td { background: var(--blush); }
+.weekly-table tr.today td { background: var(--gold-pale); font-weight: 500; }
+
+/* ── STOCK STATUS ── */
+.stock-status { display: flex; align-items: center; gap: 6px; }
+.stock-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.stock-dot.ok { background: var(--green); }
+.stock-dot.low { background: var(--gold); }
+.stock-dot.dead { background: var(--red); }
+
+/* ── EMPTY STATE ── */
+.empty-state { text-align: center; padding: 40px 20px; color: var(--text-muted); }
+.empty-state .emoji { font-size: 40px; margin-bottom: 10px; }
+.empty-state p { font-size: 13px; line-height: 1.6; }
+
+/* ── RESPONSIVE ── */
+@media (min-width: 480px) {
+  .stat-grid { grid-template-columns: 1fr 1fr 1fr; }
+  .main { padding: 20px; }
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="app-header">
+  <div class="header-top">
+    <div class="header-brand">
+      <div class="header-logo">🪷</div>
+      <div>
+        <div class="header-title">मनभावन वस्त्रालय</div>
+        <div class="header-sub">Shop Manager — साड़ी व्यापार सहायक</div>
+      </div>
+    </div>
+    <div class="header-date" id="headerDate"></div>
+  </div>
+  <div class="gold-bar"></div>
+  <nav class="tab-bar">
+    <button class="tab-btn active" onclick="switchTab('dashboard')">
+      <span class="tab-icon">🏠</span>Dashboard
+    </button>
+    <button class="tab-btn" onclick="switchTab('sales')">
+      <span class="tab-icon">💰</span>बिक्री
+    </button>
+    <button class="tab-btn" onclick="switchTab('stock')">
+      <span class="tab-icon">📦</span>स्टॉक
+    </button>
+    <button class="tab-btn" onclick="switchTab('customers')">
+      <span class="tab-icon">👥</span>ग्राहक
+    </button>
+    <button class="tab-btn" onclick="switchTab('expenses')">
+      <span class="tab-icon">📊</span>खर्च
+    </button>
+    <button class="tab-btn" onclick="switchTab('festival')">
+      <span class="tab-icon">🎉</span>त्योहार
+    </button>
+    <button class="tab-btn" onclick="switchTab('whatsapp')">
+      <span class="tab-icon">💬</span>WhatsApp
+    </button>
+    <button class="tab-btn" onclick="switchTab('photos')">
+      <span class="tab-icon">📸</span>Photos
+    </button>
+    <button class="tab-btn" onclick="switchTab('settings')">
+      <span class="tab-icon">⚙️</span>Settings
+    </button>
+  </nav>
+</header>
+
+<main class="main">
+
+<!-- ════════════════════════ DASHBOARD ════════════════════════ -->
+<div id="page-dashboard" class="page active">
+
+  <div class="quote-banner">
+    <div class="quote-text" id="dailyQuote">लोड हो रहा है...</div>
+    <div class="quote-sub">आज का विचार</div>
+  </div>
+
+  <div id="dashAlerts"></div>
+
+  <!-- Today's Target Progress -->
+  <div class="card">
+    <div class="card-title">🎯 आज का लक्ष्य</div>
+    <div id="todayTargetDisplay">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <div>
+          <div style="font-size:11px;color:var(--text-muted)">आज की बिक्री</div>
+          <div style="font-family:'Playfair Display',serif;font-size:26px;color:var(--maroon)" id="todaySalesAmt">₹0</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:11px;color:var(--text-muted)">लक्ष्य</div>
+          <div style="font-family:'Playfair Display',serif;font-size:20px;color:var(--text-muted)" id="todayTargetAmt">₹7,200</div>
+        </div>
+      </div>
+      <div class="progress-wrap">
+        <div class="progress-bar"><div class="progress-fill" id="todayProgressBar" style="width:0%"></div></div>
+        <div class="progress-label" style="margin-top:4px;">
+          <span id="todayProgressPct">0%</span>
+          <span id="todayRemaining" style="color:var(--red)">बाकी: ₹7,200</span>
+        </div>
+      </div>
+      <div id="sareesNeeded" style="font-size:12px;color:var(--text-muted);margin-top:4px;"></div>
+    </div>
+  </div>
+
+  <!-- Quick Stats -->
+  <div class="stat-grid">
+    <div class="stat-box highlight">
+      <div class="stat-label">इस महीने</div>
+      <div class="stat-value" id="monthSales">₹0</div>
+      <div class="stat-sub">कुल बिक्री</div>
+    </div>
+    <div class="stat-box gold">
+      <div class="stat-label">मुनाफा</div>
+      <div class="stat-value" id="monthProfit">₹0</div>
+      <div class="stat-sub">इस महीने</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-label">ग्राहक</div>
+      <div class="stat-value" id="totalCustomers">0</div>
+      <div class="stat-sub">कुल रजिस्टर्ड</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-label">स्टॉक</div>
+      <div class="stat-value" id="totalStock">0</div>
+      <div class="stat-sub">कुल साड़ियाँ</div>
+    </div>
+  </div>
+
+  <!-- Weekly Chart -->
+  <div class="card">
+    <div class="card-title">📈 इस हफ्ते की बिक्री</div>
+    <canvas id="weeklyChart" height="140"></canvas>
+  </div>
+
+  <!-- Recent Sales -->
+  <div class="card">
+    <div class="card-title">🛍️ हाल की बिक्री</div>
+    <div id="recentSalesList">
+      <div class="empty-state"><div class="emoji">📋</div><p>अभी कोई बिक्री नहीं<br>नीचे + बटन से जोड़ें</p></div>
+    </div>
+  </div>
+
+  <!-- Smart Tips -->
+  <div class="card">
+    <div class="card-title">💡 आज की सलाह</div>
+    <div id="smartTips"></div>
+  </div>
+
+</div>
+
+<!-- ════════════════════════ SALES ════════════════════════ -->
+<div id="page-sales" class="page">
+
+  <div class="section-title">💰 बिक्री रजिस्टर</div>
+
+  <!-- Set Target -->
+  <div class="card">
+    <div class="card-title">🎯 Target सेट करें</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">दैनिक Target (₹)</label>
+        <input type="number" class="form-input" id="dailyTarget" placeholder="7200" value="">
+      </div>
+      <div class="form-group">
+        <label class="form-label">औसत साड़ी कीमत (₹)</label>
+        <input type="number" class="form-input" id="avgSareePrice" placeholder="1200" value="">
+      </div>
+    </div>
+    <button class="btn btn-primary btn-sm" onclick="saveTargets()">✅ Target Save करें</button>
+  </div>
+
+  <!-- Add Sale -->
+  <div class="card">
+    <div class="card-title">➕ नई बिक्री दर्ज करें</div>
+    <div class="form-group">
+      <label class="form-label">तारीख</label>
+      <input type="date" class="form-input" id="saleDate">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">बिक्री राशि (₹)</label>
+        <input type="number" class="form-input" id="saleAmount" placeholder="1400">
+      </div>
+      <div class="form-group">
+        <label class="form-label">साड़ियाँ बेचीं</label>
+        <input type="number" class="form-input" id="saleCount" placeholder="1">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">नोट (वैकल्पिक)</label>
+      <input type="text" class="form-input" id="saleNote" placeholder="जैसे: Banarasi silk, शादी की साड़ी">
+    </div>
+    <button class="btn btn-primary btn-block" onclick="addSale()">💰 बिक्री जोड़ें</button>
+  </div>
+
+  <!-- Sales History -->
+  <div class="card">
+    <div class="card-title">📋 बिक्री इतिहास</div>
+    <div style="display:flex;gap:8px;margin-bottom:12px;">
+      <select class="form-select" id="salesFilterMonth" onchange="renderSalesHistory()" style="flex:1">
+        <option value="">सभी महीने</option>
+      </select>
+    </div>
+    <div id="salesHistoryList"></div>
+  </div>
+
+  <!-- Monthly Chart -->
+  <div class="card">
+    <div class="card-title">📊 मासिक बिक्री चार्ट</div>
+    <canvas id="monthlyChart" height="160"></canvas>
+  </div>
+
+</div>
+
+<!-- ════════════════════════ STOCK ════════════════════════ -->
+<div id="page-stock" class="page">
+
+  <div class="section-title">📦 स्टॉक रजिस्टर</div>
+
+  <!-- Add Stock -->
+  <div class="card">
+    <div class="card-title">➕ नई साड़ी स्टॉक में जोड़ें</div>
+    <div class="form-group">
+      <label class="form-label">साड़ी का नाम / टाइप</label>
+      <input type="text" class="form-input" id="stockName" placeholder="जैसे: Banarasi Silk, Cotton Plain">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">कैटेगरी</label>
+        <select class="form-select" id="stockCategory">
+          <option value="budget">बजट (₹500–₹800)</option>
+          <option value="mid" selected>मिड रेंज (₹1000–₹2000)</option>
+          <option value="premium">प्रीमियम (₹3000+)</option>
+          <option value="bridal">ब्राइडल</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">नग (Quantity)</label>
+        <input type="number" class="form-input" id="stockQty" placeholder="10">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">खरीद कीमत (₹)</label>
+        <input type="number" class="form-input" id="stockBuyPrice" placeholder="800">
+      </div>
+      <div class="form-group">
+        <label class="form-label">बिक्री कीमत (₹)</label>
+        <input type="number" class="form-input" id="stockSellPrice" placeholder="1400">
+      </div>
+    </div>
+    <button class="btn btn-primary btn-block" onclick="addStock()">📦 स्टॉक जोड़ें</button>
+  </div>
+
+  <!-- Stock Alerts -->
+  <div id="stockAlerts"></div>
+
+  <!-- Stock List -->
+  <div class="card">
+    <div class="card-title">📋 स्टॉक सूची</div>
+    <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
+      <select class="form-select" id="stockFilterCat" onchange="renderStock()" style="flex:1;min-width:120px;">
+        <option value="">सभी कैटेगरी</option>
+        <option value="budget">बजट</option>
+        <option value="mid">मिड रेंज</option>
+        <option value="premium">प्रीमियम</option>
+        <option value="bridal">ब्राइडल</option>
+      </select>
+    </div>
+    <div id="stockList"></div>
+  </div>
+
+</div>
+
+<!-- ════════════════════════ CUSTOMERS ════════════════════════ -->
+<div id="page-customers" class="page">
+
+  <div class="section-title">👥 ग्राहक रजिस्टर</div>
+
+  <!-- Add Customer -->
+  <div class="card">
+    <div class="card-title">➕ नया ग्राहक जोड़ें</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">नाम</label>
+        <input type="text" class="form-input" id="custName" placeholder="सीता देवी">
+      </div>
+      <div class="form-group">
+        <label class="form-label">मोबाइल नंबर</label>
+        <input type="tel" class="form-input" id="custPhone" placeholder="9876543210">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">जन्मदिन (वैकल्पिक)</label>
+        <input type="date" class="form-input" id="custBirthday">
+      </div>
+      <div class="form-group">
+        <label class="form-label">पसंदीदा साड़ी</label>
+        <input type="text" class="form-input" id="custPref" placeholder="Silk, Cotton...">
+      </div>
+    </div>
+    <button class="btn btn-primary btn-block" onclick="addCustomer()">👥 ग्राहक जोड़ें</button>
+  </div>
+
+  <!-- Alerts -->
+  <div id="custAlerts"></div>
+
+  <!-- Customer List -->
+  <div class="card">
+    <div class="card-title">📋 ग्राहक सूची</div>
+    <input type="text" class="form-input" id="custSearch" placeholder="🔍 नाम या नंबर से खोजें..." oninput="renderCustomers()" style="margin-bottom:12px;">
+    <div id="customerList"></div>
+  </div>
+
+</div>
+
+<!-- ════════════════════════ EXPENSES ════════════════════════ -->
+<div id="page-expenses" class="page">
+
+  <div class="section-title">📊 खर्च और मुनाफा</div>
+
+  <!-- Add Expense -->
+  <div class="card">
+    <div class="card-title">➕ खर्च दर्ज करें</div>
+    <div class="form-group">
+      <label class="form-label">खर्च का प्रकार</label>
+      <select class="form-select" id="expType">
+        <option value="rent">किराया</option>
+        <option value="electricity">बिजली बिल</option>
+        <option value="staff">Staff Salary</option>
+        <option value="stock">माल खरीद</option>
+        <option value="transport">Transport</option>
+        <option value="packaging">Packaging</option>
+        <option value="other">अन्य</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">राशि (₹)</label>
+        <input type="number" class="form-input" id="expAmount" placeholder="5000">
+      </div>
+      <div class="form-group">
+        <label class="form-label">तारीख</label>
+        <input type="date" class="form-input" id="expDate">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">नोट</label>
+      <input type="text" class="form-input" id="expNote" placeholder="विवरण लिखें">
+    </div>
+    <button class="btn btn-primary btn-block" onclick="addExpense()">📊 खर्च जोड़ें</button>
+  </div>
+
+  <!-- P&L Summary -->
+  <div class="card">
+    <div class="card-title">💹 इस महीने का हिसाब</div>
+    <div class="stat-grid" style="margin-bottom:12px;">
+      <div class="stat-box" style="background:var(--green-light);border-color:var(--green)">
+        <div class="stat-label">कुल बिक्री</div>
+        <div class="stat-value" style="color:var(--green)" id="plSales">₹0</div>
+      </div>
+      <div class="stat-box" style="background:var(--red-light);border-color:var(--red)">
+        <div class="stat-label">कुल खर्च</div>
+        <div class="stat-value" style="color:var(--red)" id="plExpenses">₹0</div>
+      </div>
+    </div>
+    <div id="plProfit" style="text-align:center;padding:14px;border-radius:var(--radius-sm);background:var(--gold-pale);border:1.5px solid var(--gold);">
+      <div style="font-size:11px;color:var(--text-muted)">शुद्ध मुनाफा</div>
+      <div style="font-family:'Playfair Display',serif;font-size:28px;color:var(--maroon)">₹0</div>
+    </div>
+    <canvas id="expenseChart" height="160" style="margin-top:14px;"></canvas>
+  </div>
+
+  <!-- Expense List -->
+  <div class="card">
+    <div class="card-title">📋 खर्च इतिहास</div>
+    <div id="expenseList"></div>
+  </div>
+
+</div>
+
+<!-- ════════════════════════ FESTIVAL ════════════════════════ -->
+<div id="page-festival" class="page">
+
+  <div class="section-title">🎉 त्योहार प्लानर</div>
+
+  <div class="alert alert-warning">
+    🌟 सीजन से <strong>3 हफ्ते पहले</strong> stock तैयार रखें — last minute में अच्छा माल नहीं मिलता!
+  </div>
+
+  <div class="card">
+    <div class="card-title">📅 आने वाले त्योहार और सीजन</div>
+    <div id="festivalList"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">✅ त्योहार Checklist</div>
+    <div id="festivalChecklist"></div>
+  </div>
+
+</div>
+
+<!-- ════════════════════════ WHATSAPP ════════════════════════ -->
+<div id="page-whatsapp" class="page">
+
+  <div class="section-title">💬 WhatsApp Campaign Helper</div>
+
+  <div class="alert alert-info">
+    📱 नीचे दिए गए templates copy करें और WhatsApp पर भेजें — <strong>बिल्कुल मुफ्त marketing!</strong>
+  </div>
+
+  <div id="waTemplates"></div>
+
+  <!-- Bulk Export -->
+  <div class="card">
+    <div class="card-title">📤 ग्राहक List Export</div>
+    <p style="font-size:12px;color:var(--text-muted);margin-bottom:12px;">अपने सभी ग्राहकों के नंबर copy करें — WhatsApp Broadcast List बनाने के लिए।</p>
+    <button class="btn btn-green btn-block" onclick="exportCustomers()">📋 सभी नंबर Copy करें</button>
+  </div>
+
+</div>
+
+
+<!-- ════════════════════════ PHOTOS ════════════════════════ -->
+<div id="page-photos" class="page">
+  <div class="section-title">📸 साड़ी Photo Gallery</div>
+  <div class="alert alert-info">
+    📱 साड़ी की फोटो लें और सीधे <strong>WhatsApp पर share</strong> करें — best free marketing!
+  </div>
+  <button class="btn btn-primary btn-block" style="margin-bottom:14px;font-size:16px;padding:14px;" onclick="openCamera()">
+    📸 नई साड़ी की फोटो लें
+  </button>
+  <div id="photoGallery"></div>
+</div>
+
+<!-- ════════════════════════ SETTINGS ════════════════════════ -->
+<div id="page-settings" class="page">
+  <div class="section-title">⚙️ Settings</div>
+
+  <!-- Notification Settings -->
+  <div class="card">
+    <div class="card-title">🔔 Notifications</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+      <div>
+        <div style="font-weight:500;font-size:13px;">Push Notifications</div>
+        <div id="notifPermStatus" style="font-size:11px;color:var(--text-muted);margin-top:2px;"></div>
+      </div>
+      <button class="btn btn-primary btn-sm" onclick="requestNotificationPermission()">चालू करें</button>
+    </div>
+    <div class="alert alert-info" style="font-size:11px;">
+      📅 <b>रोज़ notifications मिलेंगे:</b><br>
+      • सुबह 9 बजे — Daily target reminder<br>
+      • शाम 6 बजे — हिसाब लिखने की reminder<br>
+      • त्योहार से 3 हफ्ते पहले — Stock तैयार करने का alert
+    </div>
+  </div>
+
+  <!-- App Install -->
+  <div class="card">
+    <div class="card-title">📱 App Install</div>
+    <p style="font-size:12px;color:var(--text-muted);margin-bottom:12px;">Phone के Home Screen पर app install करें — internet के बिना भी काम करेगा!</p>
+    <button class="btn btn-gold btn-block" onclick="installApp()">📲 Home Screen पर Install करें</button>
+    <div style="margin-top:10px;font-size:11px;color:var(--text-muted);text-align:center;">
+      iPhone पर: Safari > Share बटन > "Add to Home Screen"
+    </div>
+  </div>
+
+  <!-- Online Status -->
+  <div class="card">
+    <div class="card-title">🌐 Connection Status</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <span style="font-size:13px;">Internet Status:</span>
+      <span id="onlineIndicator"></span>
+    </div>
+    <div class="alert alert-success" style="margin-top:10px;font-size:11px;">
+      ✅ <b>Offline Mode:</b> App बिना internet के भी काम करता है — सारा data phone में safe है।
+    </div>
+  </div>
+
+  <!-- WhatsApp Quick Send -->
+  <div class="card">
+    <div class="card-title">💬 ग्राहक को WhatsApp भेजें</div>
+    <p style="font-size:12px;color:var(--text-muted);margin-bottom:10px;">किसी भी ग्राहक को सीधे WhatsApp message भेजें:</p>
+    <select class="form-select" id="waCustomerSelect" style="margin-bottom:8px;"></select>
+    <select class="form-select" id="waTemplateSelect" style="margin-bottom:10px;">
+      <option value="0">🆕 नई साड़ी Arrival</option>
+      <option value="1">🔁 Follow-up (30 दिन बाद)</option>
+      <option value="2">🎂 Birthday Wishes</option>
+    </select>
+    <button class="btn btn-green btn-block" onclick="sendToSelectedCustomer()">💬 WhatsApp भेजें</button>
+  </div>
+
+  <!-- Data Management -->
+  <div class="card">
+    <div class="card-title">💾 Data Management</div>
+    <button class="btn btn-outline btn-block" onclick="exportData()" style="margin-bottom:8px;">📤 सारा Data Export करें (JSON)</button>
+    <button class="btn btn-sm" style="background:var(--red-light);color:var(--red);width:100%;justify-content:center;" onclick="clearAllData()">⚠️ सारा Data Delete करें</button>
+  </div>
+
+  <!-- App Info -->
+  <div class="card" style="text-align:center;">
+    <div style="font-size:32px;margin-bottom:8px;">🪷</div>
+    <div style="font-family:'Playfair Display',serif;font-size:16px;color:var(--maroon);">मनभावन वस्त्रालय</div>
+    <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">Shop Manager v2.0 — PWA</div>
+    <div style="font-size:10px;color:var(--text-muted);margin-top:8px;">
+      📍 Chaurasia Complex, Lucknow — 226003<br>
+      📍 Rajajipuram, Lucknow — 226017
+    </div>
+  </div>
+</div>
+
+</main><!-- end main -->
+
+<!-- Install Banner -->
+<div id="installBanner" style="display:none;position:fixed;bottom:80px;left:12px;right:12px;background:linear-gradient(135deg,#4A0812,#6B0F1A);color:white;border-radius:14px;padding:14px 16px;z-index:180;align-items:center;gap:12px;box-shadow:0 8px 24px rgba(74,8,18,0.4);">
+  <span style="font-size:28px;">🪷</span>
+  <div style="flex:1;">
+    <div style="font-weight:600;font-size:13px;">App Install करें</div>
+    <div style="font-size:11px;opacity:0.8;">Home Screen पर icon आएगा</div>
+  </div>
+  <button onclick="installApp()" style="background:#C9972E;color:#4A0812;border:none;border-radius:8px;padding:8px 14px;font-weight:600;font-size:13px;cursor:pointer;">Install</button>
+  <button onclick="this.parentElement.style.display='none'" style="background:none;border:none;color:white;font-size:20px;cursor:pointer;padding:0 4px;">×</button>
+</div>
+
+<!-- Camera Modal -->
+<div class="modal-overlay" id="cameraModal">
+  <div class="modal-sheet" style="padding-bottom:env(safe-area-inset-bottom,20px);">
+    <div class="modal-handle"></div>
+    <div class="modal-title">📸 साड़ी की फोटो लें</div>
+    <video id="cameraPreview" autoplay playsinline style="width:100%;border-radius:10px;background:#000;max-height:320px;object-fit:cover;"></video>
+    <canvas id="cameraCanvas" style="display:none;"></canvas>
+    <div style="display:flex;gap:10px;margin-top:14px;">
+      <button class="btn btn-primary" style="flex:1;" onclick="capturePhoto()">📸 Photo लें</button>
+      <button class="btn btn-outline" onclick="closeCameraModal()">रद्द करें</button>
+    </div>
+  </div>
+</div>
+
+<!-- FAB -->
+<button class="fab" onclick="openQuickAdd()">+</button>
+<span class="fab-label">जल्दी बिक्री जोड़ें</span>
+
+<!-- Quick Add Modal -->
+<div class="modal-overlay" id="quickAddModal" onclick="closeQuickAdd(event)">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">⚡ जल्दी बिक्री जोड़ें</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">बिक्री राशि (₹)</label>
+        <input type="number" class="form-input" id="quickAmount" placeholder="1400" style="font-size:18px;">
+      </div>
+      <div class="form-group">
+        <label class="form-label">साड़ियाँ</label>
+        <input type="number" class="form-input" id="quickCount" placeholder="1" value="1">
+      </div>
+    </div>
+    <button class="btn btn-gold btn-block" style="font-size:16px;padding:14px;" onclick="quickAddSale()">
+      ✅ जोड़ें
+    </button>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// DATA LAYER — localStorage
+// ═══════════════════════════════════════════════════════════
+const DB = {
+  get: (k, def=[]) => { try { return JSON.parse(localStorage.getItem(k)) ?? def; } catch { return def; } },
+  set: (k, v) => localStorage.setItem(k, JSON.stringify(v)),
+};
+
+const getData   = () => ({
+  sales:     DB.get('mv_sales', []),
+  stock:     DB.get('mv_stock', []),
+  customers: DB.get('mv_customers', []),
+  expenses:  DB.get('mv_expenses', []),
+  settings:  DB.get('mv_settings', { dailyTarget: 7200, avgPrice: 1200 }),
+});
+
+const saveData = (key, val) => DB.set('mv_' + key, val);
+
+// ═══════════════════════════════════════════════════════════
+// UTILITIES
+// ═══════════════════════════════════════════════════════════
+const fmt = n => '₹' + Math.round(n).toLocaleString('en-IN');
+const today = () => new Date().toISOString().slice(0,10);
+const todayObj = () => new Date();
+
+function monthKey(dateStr) {
+  if (!dateStr) return '';
+  return dateStr.slice(0,7);
+}
+function monthLabel(mk) {
+  if (!mk) return '';
+  const [y, m] = mk.split('-');
+  const months = ['जन','फर','मार','अप्र','मई','जून','जुल','अग','सित','अक्ट','नव','दिस'];
+  return months[parseInt(m)-1] + ' ' + y;
+}
+const currentMonth = () => today().slice(0,7);
+
+function daysSince(dateStr) {
+  if (!dateStr) return 0;
+  return Math.floor((new Date() - new Date(dateStr)) / 86400000);
+}
+
+function daysTill(dateStr) {
+  const d = new Date(dateStr);
+  const now = new Date(); now.setHours(0,0,0,0);
+  return Math.ceil((d - now) / 86400000);
+}
+
+function nextOccurrence(monthDay) {
+  const now = new Date();
+  const [m, d] = monthDay.split('-').map(Number);
+  let yr = now.getFullYear();
+  let candidate = new Date(yr, m-1, d);
+  if (candidate < now) candidate = new Date(yr+1, m-1, d);
+  return candidate.toISOString().slice(0,10);
+}
+
+// ═══════════════════════════════════════════════════════════
+// TAB NAVIGATION
+// ═══════════════════════════════════════════════════════════
+function switchTab(tab) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + tab).classList.add('active');
+  const idx = ['dashboard','sales','stock','customers','expenses','festival','whatsapp'].indexOf(tab);
+  document.querySelectorAll('.tab-btn')[idx].classList.add('active');
+  if (tab === 'dashboard') refreshDashboard();
+  if (tab === 'sales') { renderSalesHistory(); renderMonthlyChart(); populateSalesMonthFilter(); }
+  if (tab === 'stock') { renderStock(); renderStockAlerts(); }
+  if (tab === 'customers') { renderCustomers(); renderCustAlerts(); }
+  if (tab === 'expenses') { renderExpenses(); renderPL(); renderExpenseChart(); }
+  if (tab === 'festival') renderFestivals();
+  if (tab === 'whatsapp') renderWATemplates();
+  if (tab === 'photos') renderPhotoGallery();
+  if (tab === 'settings') { initNotificationUI(); updateOnlineStatus(); populateWACustomerSelect(); }
+}
+
+// ═══════════════════════════════════════════════════════════
+// HEADER
+// ═══════════════════════════════════════════════════════════
+function initHeader() {
+  const now = new Date();
+  const days = ['रवि','सोम','मंगल','बुध','गुरु','शुक्र','शनि'];
+  const months = ['जनवरी','फरवरी','मार्च','अप्रैल','मई','जून','जुलाई','अगस्त','सितंबर','अक्टूबर','नवंबर','दिसंबर'];
+  document.getElementById('headerDate').innerHTML =
+    `<div>${days[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]}</div><div>${now.getFullYear()}</div>`;
+}
+
+// ═══════════════════════════════════════════════════════════
+// DAILY QUOTES
+// ═══════════════════════════════════════════════════════════
+const quotes = [
+  { text: 'हर दिन एक नया अवसर है — आज का target आज ही पूरा करें।', sub: 'सफल दुकानदार की सोच' },
+  { text: 'एक खुश ग्राहक आपकी सबसे अच्छी marketing है।', sub: 'व्यापार का मूल मंत्र' },
+  { text: 'छोटी-छोटी बिक्री मिलकर बड़ा मुनाफा बनाती हैं।', sub: 'धीरज रखें, मेहनत करें' },
+  { text: 'जो रोज़ हिसाब रखता है, वही असली मुनाफा देखता है।', sub: 'अनुशासन से सफलता' },
+  { text: 'नया ग्राहक लाने से ज़्यादा, पुराने ग्राहक को रखना ज़रूरी है।', sub: 'Loyalty का जादू' },
+  { text: 'अच्छी साड़ी और अच्छी service — यही आपकी असली पहचान है।', sub: 'USP बनाएं' },
+  { text: 'त्योहार सीजन से पहले तैयार रहना ही असली चतुराई है।', sub: 'Planning = Success' },
+];
+function initQuote() {
+  const q = quotes[new Date().getDay() % quotes.length];
+  document.getElementById('dailyQuote').textContent = q.text;
+  document.querySelector('.quote-sub').textContent = q.sub;
+}
+
+// ═══════════════════════════════════════════════════════════
+// SALES
+// ═══════════════════════════════════════════════════════════
+function addSale() {
+  const date   = document.getElementById('saleDate').value || today();
+  const amount = parseFloat(document.getElementById('saleAmount').value);
+  const count  = parseInt(document.getElementById('saleCount').value) || 1;
+  const note   = document.getElementById('saleNote').value.trim();
+  if (!amount || amount <= 0) { alert('राशि डालें'); return; }
+  const sales = getData().sales;
+  sales.unshift({ id: Date.now(), date, amount, count, note });
+  saveData('sales', sales);
+  ['saleAmount','saleCount','saleNote'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('saleDate').value = today();
+  renderSalesHistory(); renderMonthlyChart(); refreshDashboard();
+  showToast('✅ बिक्री जोड़ी गई!');
+}
+
+function quickAddSale() {
+  const amount = parseFloat(document.getElementById('quickAmount').value);
+  const count  = parseInt(document.getElementById('quickCount').value) || 1;
+  if (!amount || amount <= 0) { alert('राशि डालें'); return; }
+  const sales = getData().sales;
+  sales.unshift({ id: Date.now(), date: today(), amount, count, note: 'Quick Add' });
+  saveData('sales', sales);
+  document.getElementById('quickAmount').value = '';
+  document.getElementById('quickCount').value = '1';
+  closeQuickAdd();
+  refreshDashboard();
+  showToast('✅ बिक्री जोड़ी गई!');
+}
+
+function deleteSale(id) {
+  if (!confirm('इस बिक्री को हटाएं?')) return;
+  const sales = getData().sales.filter(s => s.id !== id);
+  saveData('sales', sales);
+  renderSalesHistory(); refreshDashboard();
+}
+
+function renderSalesHistory() {
+  const { sales } = getData();
+  const filterMonth = document.getElementById('salesFilterMonth')?.value || '';
+  const filtered = filterMonth ? sales.filter(s => monthKey(s.date) === filterMonth) : sales;
+  const el = document.getElementById('salesHistoryList');
+  if (!filtered.length) { el.innerHTML = '<div class="empty-state"><div class="emoji">💰</div><p>कोई बिक्री नहीं मिली</p></div>'; return; }
+  el.innerHTML = filtered.map(s => `
+    <div class="list-item">
+      <div class="list-icon" style="background:var(--blush)">${s.count > 1 ? '🛍️' : '👘'}</div>
+      <div class="list-info">
+        <div class="list-name">${s.note || s.count + ' साड़ी बेची'}</div>
+        <div class="list-sub">${s.date} • ${s.count} साड़ी</div>
+      </div>
+      <div class="list-right">
+        <div class="list-amount">${fmt(s.amount)}</div>
+        <button onclick="deleteSale(${s.id})" style="font-size:10px;color:var(--red);background:none;border:none;cursor:pointer;margin-top:2px;">हटाएं</button>
+      </div>
+    </div>`).join('');
+}
+
+function populateSalesMonthFilter() {
+  const { sales } = getData();
+  const months = [...new Set(sales.map(s => monthKey(s.date)))].sort().reverse();
+  const sel = document.getElementById('salesFilterMonth');
+  if (!sel) return;
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">सभी महीने</option>' +
+    months.map(m => `<option value="${m}" ${m===cur?'selected':''}>${monthLabel(m)}</option>`).join('');
+}
+
+function saveTargets() {
+  const daily  = parseFloat(document.getElementById('dailyTarget').value) || 7200;
+  const avg    = parseFloat(document.getElementById('avgSareePrice').value) || 1200;
+  saveData('settings', { dailyTarget: daily, avgPrice: avg });
+  showToast('✅ Target save हो गया!');
+  refreshDashboard();
+}
+
+// ═══════════════════════════════════════════════════════════
+// STOCK
+// ═══════════════════════════════════════════════════════════
+const catLabel = { budget: 'बजट', mid: 'मिड रेंज', premium: 'प्रीमियम', bridal: 'ब्राइडल' };
+const catColor = { budget: '#2E6B3E', mid: '#1A4A7A', premium: '#6B0F1A', bridal: '#8B3A00' };
+
+function addStock() {
+  const name      = document.getElementById('stockName').value.trim();
+  const category  = document.getElementById('stockCategory').value;
+  const qty       = parseInt(document.getElementById('stockQty').value) || 1;
+  const buyPrice  = parseFloat(document.getElementById('stockBuyPrice').value) || 0;
+  const sellPrice = parseFloat(document.getElementById('stockSellPrice').value) || 0;
+  if (!name) { alert('नाम डालें'); return; }
+  const stock = getData().stock;
+  stock.unshift({ id: Date.now(), name, category, qty, buyPrice, sellPrice, addedDate: today() });
+  saveData('stock', stock);
+  ['stockName','stockQty','stockBuyPrice','stockSellPrice'].forEach(id => document.getElementById(id).value = '');
+  renderStock(); renderStockAlerts();
+  showToast('✅ स्टॉक जोड़ा गया!');
+}
+
+function updateStockQty(id, delta) {
+  const stock = getData().stock;
+  const item = stock.find(s => s.id === id);
+  if (item) { item.qty = Math.max(0, item.qty + delta); saveData('stock', stock); }
+  renderStock(); renderStockAlerts();
+}
+
+function deleteStock(id) {
+  if (!confirm('इस आइटम को हटाएं?')) return;
+  saveData('stock', getData().stock.filter(s => s.id !== id));
+  renderStock();
+}
+
+function renderStock() {
+  const filterCat = document.getElementById('stockFilterCat')?.value || '';
+  let stock = getData().stock;
+  if (filterCat) stock = stock.filter(s => s.category === filterCat);
+  const el = document.getElementById('stockList');
+  if (!stock.length) { el.innerHTML = '<div class="empty-state"><div class="emoji">📦</div><p>कोई स्टॉक नहीं</p></div>'; return; }
+
+  const reorderPoints = { budget: 5, mid: 8, premium: 2, bridal: 2 };
+  el.innerHTML = stock.map(s => {
+    const margin = s.sellPrice > 0 ? Math.round((s.sellPrice - s.buyPrice) / s.sellPrice * 100) : 0;
+    const rp = reorderPoints[s.category] || 5;
+    const isDead = daysSince(s.addedDate) > 45 && s.qty > 0;
+    const isLow  = s.qty <= rp && s.qty > 0;
+    let statusDot = 'ok', statusText = 'ठीक है';
+    if (isDead) { statusDot = 'dead'; statusText = 'Dead Stock'; }
+    else if (isLow) { statusDot = 'low'; statusText = 'कम है'; }
+    return `
+    <div class="list-item" style="${isDead?'background:var(--red-light);padding:8px;border-radius:8px;':''}">
+      <div class="list-icon" style="background:${catColor[s.category]}22;color:${catColor[s.category]}">👘</div>
+      <div class="list-info">
+        <div class="list-name">${s.name}</div>
+        <div class="list-sub" style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:3px;">
+          <span class="badge" style="background:${catColor[s.category]}22;color:${catColor[s.category]}">${catLabel[s.category]}</span>
+          <span class="stock-status"><span class="stock-dot ${statusDot}"></span>${statusText}</span>
+          ${margin > 0 ? `<span style="color:var(--green);font-size:10px;">${margin}% margin</span>` : ''}
+        </div>
+      </div>
+      <div class="list-right" style="text-align:center">
+        <div style="display:flex;align-items:center;gap:6px;">
+          <button onclick="updateStockQty(${s.id},-1)" style="background:var(--red-light);border:none;border-radius:6px;width:26px;height:26px;font-size:16px;cursor:pointer;color:var(--red);">−</button>
+          <span style="font-family:'Playfair Display',serif;font-size:18px;min-width:28px;text-align:center">${s.qty}</span>
+          <button onclick="updateStockQty(${s.id},1)" style="background:var(--green-light);border:none;border-radius:6px;width:26px;height:26px;font-size:16px;cursor:pointer;color:var(--green);">+</button>
+        </div>
+        <div style="font-size:10px;color:var(--text-muted);margin-top:3px;">${fmt(s.sellPrice)}</div>
+        <button onclick="deleteStock(${s.id})" style="font-size:10px;color:var(--red);background:none;border:none;cursor:pointer;">हटाएं</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderStockAlerts() {
+  const stock = getData().stock;
+  const reorderPoints = { budget: 5, mid: 8, premium: 2, bridal: 2 };
+  const dead = stock.filter(s => daysSince(s.addedDate) > 45 && s.qty > 0);
+  const low  = stock.filter(s => s.qty <= (reorderPoints[s.category]||5) && s.qty > 0 && daysSince(s.addedDate) <= 45);
+  let html = '';
+  if (dead.length) html += `<div class="alert alert-danger">⚠️ <b>${dead.length} Dead Stock</b>: ${dead.map(s=>s.name).join(', ')} — discount देकर निकालें!</div>`;
+  if (low.length)  html += `<div class="alert alert-warning">🔔 <b>कम स्टॉक</b>: ${low.map(s=>s.name+' ('+s.qty+')').join(', ')} — reorder करें!</div>`;
+  document.getElementById('stockAlerts').innerHTML = html;
+}
+
+// ═══════════════════════════════════════════════════════════
+// CUSTOMERS
+// ═══════════════════════════════════════════════════════════
+function addCustomer() {
+  const name     = document.getElementById('custName').value.trim();
+  const phone    = document.getElementById('custPhone').value.trim();
+  const birthday = document.getElementById('custBirthday').value;
+  const pref     = document.getElementById('custPref').value.trim();
+  if (!name || !phone) { alert('नाम और नंबर ज़रूरी है'); return; }
+  const customers = getData().customers;
+  customers.unshift({ id: Date.now(), name, phone, birthday, pref, addedDate: today(), lastVisit: today(), points: 0, totalSpent: 0 });
+  saveData('customers', customers);
+  ['custName','custPhone','custBirthday','custPref'].forEach(id => document.getElementById(id).value = '');
+  renderCustomers(); renderCustAlerts();
+  showToast('✅ ग्राहक जोड़ा गया!');
+}
+
+function deleteCustomer(id) {
+  if (!confirm('इस ग्राहक को हटाएं?')) return;
+  saveData('customers', getData().customers.filter(c => c.id !== id));
+  renderCustomers();
+}
+
+function updateLastVisit(id) {
+  const customers = getData().customers;
+  const c = customers.find(c => c.id === id);
+  if (c) { c.lastVisit = today(); c.points = (c.points||0) + 1; saveData('customers', customers); }
+  renderCustomers();
+  showToast('✅ Visit दर्ज हो गया! +1 Point');
+}
+
+function renderCustomers() {
+  const search = (document.getElementById('custSearch')?.value || '').toLowerCase();
+  let customers = getData().customers;
+  if (search) customers = customers.filter(c => c.name.toLowerCase().includes(search) || c.phone.includes(search));
+  const el = document.getElementById('customerList');
+  if (!customers.length) { el.innerHTML = '<div class="empty-state"><div class="emoji">👥</div><p>कोई ग्राहक नहीं मिला</p></div>'; return; }
+  const now = new Date();
+  el.innerHTML = customers.map(c => {
+    const inactive = daysSince(c.lastVisit) > 30;
+    const bday = c.birthday ? checkBirthdayThisWeek(c.birthday) : false;
+    return `
+    <div class="list-item">
+      <div class="list-icon" style="background:var(--blush);color:var(--maroon);font-size:20px">👤</div>
+      <div class="list-info">
+        <div class="list-name">${c.name} ${bday ? '🎂' : ''}</div>
+        <div class="list-sub">📞 ${c.phone} ${c.pref ? '• '+c.pref : ''}</div>
+        <div style="display:flex;gap:5px;margin-top:4px;flex-wrap:wrap;">
+          ${inactive ? '<span class="badge badge-red">30+ दिन नहीं आए</span>' : '<span class="badge badge-green">Active</span>'}
+          ${bday ? '<span class="badge badge-gold">🎂 Birthday इस हफ्ते!</span>' : ''}
+          <span style="font-size:10px;color:var(--text-muted)">Points: ${c.points||0}</span>
+        </div>
+      </div>
+      <div class="list-right" style="display:flex;flex-direction:column;gap:4px;align-items:flex-end;">
+        <a href="tel:${c.phone}" style="font-size:18px;text-decoration:none;">📞</a>
+        <a href="https://wa.me/91${c.phone}" target="_blank" style="font-size:18px;text-decoration:none;">💬</a>
+        <button onclick="updateLastVisit(${c.id})" style="font-size:10px;background:var(--green);color:white;border:none;border-radius:5px;padding:2px 6px;cursor:pointer;">✅ Visit</button>
+        <button onclick="deleteCustomer(${c.id})" style="font-size:10px;color:var(--red);background:none;border:none;cursor:pointer;">हटाएं</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function checkBirthdayThisWeek(birthday) {
+  if (!birthday) return false;
+  const now = new Date();
+  const parts = birthday.split('-');
+  const bMonth = parseInt(parts[1]);
+  const bDay   = parseInt(parts[2]);
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(now); d.setDate(now.getDate() + i);
+    if (d.getMonth()+1 === bMonth && d.getDate() === bDay) return true;
+  }
+  return false;
+}
+
+function renderCustAlerts() {
+  const customers = getData().customers;
+  const inactive  = customers.filter(c => daysSince(c.lastVisit) > 30);
+  const birthdays = customers.filter(c => c.birthday && checkBirthdayThisWeek(c.birthday));
+  let html = '';
+  if (birthdays.length) html += `<div class="alert alert-success">🎂 इस हफ्ते Birthday: <b>${birthdays.map(c=>c.name).join(', ')}</b> — उन्हें WhatsApp करें!</div>`;
+  if (inactive.length)  html += `<div class="alert alert-warning">⏰ <b>${inactive.length} ग्राहक</b> 30+ दिनों से नहीं आए — follow-up करें!</div>`;
+  document.getElementById('custAlerts').innerHTML = html;
+}
+
+function exportCustomers() {
+  const customers = getData().customers;
+  if (!customers.length) { alert('कोई ग्राहक नहीं है'); return; }
+  const nums = customers.map(c => `${c.name}: ${c.phone}`).join('\n');
+  navigator.clipboard.writeText(nums).then(() => showToast('✅ सभी नंबर Copy हो गए!'));
+}
+
+// ═══════════════════════════════════════════════════════════
+// EXPENSES
+// ═══════════════════════════════════════════════════════════
+const expLabels = { rent:'किराया', electricity:'बिजली', staff:'Staff', stock:'माल खरीद', transport:'Transport', packaging:'Packaging', other:'अन्य' };
+const expIcons  = { rent:'🏠', electricity:'⚡', staff:'👤', stock:'📦', transport:'🚗', packaging:'📦', other:'💸' };
+
+function addExpense() {
+  const type   = document.getElementById('expType').value;
+  const amount = parseFloat(document.getElementById('expAmount').value);
+  const date   = document.getElementById('expDate').value || today();
+  const note   = document.getElementById('expNote').value.trim();
+  if (!amount || amount <= 0) { alert('राशि डालें'); return; }
+  const expenses = getData().expenses;
+  expenses.unshift({ id: Date.now(), type, amount, date, note });
+  saveData('expenses', expenses);
+  ['expAmount','expNote'].forEach(id => document.getElementById(id).value = '');
+  renderExpenses(); renderPL(); renderExpenseChart();
+  showToast('✅ खर्च जोड़ा गया!');
+}
+
+function deleteExpense(id) {
+  if (!confirm('इस खर्च को हटाएं?')) return;
+  saveData('expenses', getData().expenses.filter(e => e.id !== id));
+  renderExpenses(); renderPL(); renderExpenseChart();
+}
+
+function renderExpenses() {
+  const expenses = getData().expenses.filter(e => monthKey(e.date) === currentMonth());
+  const el = document.getElementById('expenseList');
+  if (!expenses.length) { el.innerHTML = '<div class="empty-state"><div class="emoji">📊</div><p>इस महीने कोई खर्च नहीं</p></div>'; return; }
+  el.innerHTML = expenses.map(e => `
+    <div class="list-item">
+      <div class="list-icon" style="background:var(--red-light)">${expIcons[e.type]||'💸'}</div>
+      <div class="list-info">
+        <div class="list-name">${expLabels[e.type]||e.type}</div>
+        <div class="list-sub">${e.date}${e.note?' • '+e.note:''}</div>
+      </div>
+      <div class="list-right">
+        <div class="list-amount" style="color:var(--red)">${fmt(e.amount)}</div>
+        <button onclick="deleteExpense(${e.id})" style="font-size:10px;color:var(--red);background:none;border:none;cursor:pointer;">हटाएं</button>
+      </div>
+    </div>`).join('');
+}
+
+function renderPL() {
+  const { sales, expenses } = getData();
+  const cm = currentMonth();
+  const totalSales = sales.filter(s => monthKey(s.date) === cm).reduce((a,s) => a+s.amount, 0);
+  const totalExp   = expenses.filter(e => monthKey(e.date) === cm).reduce((a,e) => a+e.amount, 0);
+  const profit = totalSales - totalExp;
+  document.getElementById('plSales').textContent    = fmt(totalSales);
+  document.getElementById('plExpenses').textContent = fmt(totalExp);
+  const profitEl = document.getElementById('plProfit');
+  profitEl.querySelector('div:last-child').textContent = fmt(profit);
+  profitEl.style.background = profit >= 0 ? 'var(--green-light)' : 'var(--red-light)';
+  profitEl.style.borderColor = profit >= 0 ? 'var(--green)' : 'var(--red)';
+  profitEl.querySelector('div:last-child').style.color = profit >= 0 ? 'var(--green)' : 'var(--red)';
+}
+
+// ═══════════════════════════════════════════════════════════
+// FESTIVALS
+// ═══════════════════════════════════════════════════════════
+const FESTIVALS = [
+  { name:'नवरात्रि', md:'10-02', emoji:'🪷', tip:'festive stock + combo offers' },
+  { name:'दशहरा (Dussehra)', md:'10-12', emoji:'🏹', tip:'silk sarees, gift packing' },
+  { name:'धनतेरस', md:'10-29', emoji:'🪙', tip:'premium collection ready रखें' },
+  { name:'दिवाली', md:'11-01', emoji:'🪔', tip:'सबसे बड़ा सीजन — full stock!' },
+  { name:'ईद', md:'03-30', emoji:'🌙', tip:'embroidered, georgette sarees' },
+  { name:'होली', md:'03-14', emoji:'🎨', tip:'रंगीन cotton साड़ियाँ' },
+  { name:'Raksha Bandhan', md:'08-09', emoji:'🎗️', tip:'silk, festive sarees' },
+  { name:'Teej', md:'08-07', emoji:'🌿', tip:'green sarees, festive collection' },
+  { name:'शादी सीजन (Nov–Feb)', md:'11-15', emoji:'💍', tip:'bridal, heavy silk sarees' },
+  { name:'Valentine\'s Day', md:'02-14', emoji:'❤️', tip:'gift sarees, couple offers' },
+  { name:'Durga Puja', md:'10-08', emoji:'🙏', tip:'Bengal weaves, silk sarees' },
+  { name:'Onam', md:'09-05', emoji:'🌸', tip:'Kerala kasavu sarees' },
+];
+
+function renderFestivals() {
+  const el = document.getElementById('festivalList');
+  const upcoming = FESTIVALS.map(f => ({ ...f, date: nextOccurrence(f.md), days: daysTill(nextOccurrence(f.md)) }))
+    .filter(f => f.days >= 0).sort((a,b) => a.days - b.days);
+  el.innerHTML = upcoming.map(f => {
+    const cls = f.days <= 14 ? 'soon' : f.days <= 45 ? 'near' : 'far';
+    const lbl = f.days === 0 ? 'आज!' : f.days + ' दिन बाकी';
+    return `
+    <div class="fest-card">
+      <div class="fest-emoji">${f.emoji}</div>
+      <div class="fest-info">
+        <div class="fest-name">${f.name}</div>
+        <div class="fest-date">💡 ${f.tip}</div>
+      </div>
+      <div class="fest-days ${cls}">${lbl}</div>
+    </div>`;
+  }).join('');
+
+  // Checklist
+  const next = upcoming[0];
+  if (next) {
+    document.getElementById('festivalChecklist').innerHTML = `
+      <div style="font-weight:600;color:var(--maroon);margin-bottom:10px;">अगला: ${next.emoji} ${next.name}</div>
+      ${['✅ Stock भर लिया?','📱 WhatsApp campaign plan किया?','🏷️ Special offer decide किया?','🎁 Gift packing available है?','📸 नई साड़ियों की photo लेली?'].map(item => `
+        <label style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;cursor:pointer;">
+          <input type="checkbox" style="width:16px;height:16px;accent-color:var(--maroon)"> ${item}
+        </label>`).join('')}`;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// WHATSAPP TEMPLATES
+// ═══════════════════════════════════════════════════════════
+const WA_TEMPLATES = [
+  { title: '🆕 नई साड़ी Arrival', body: `नमस्ते! 🙏\nमनभावन वस्त्रालय में नई साड़ियाँ आई हैं।\n✨ Banarasi Silk | Cotton | Georgette\n💰 ₹500 से शुरू\n📍 हमारी दुकान पर आएं या फोटो देखें!\n\n*मनभावन वस्त्रालय* 👘` },
+  { title: '🎉 त्योहार Special Offer', body: `🎊 त्योहार मुबारक हो! 🎊\nइस उपलक्ष्य में हमारा खास ऑफर:\n🛍️ 2 साड़ी खरीदें — ब्लाउज पीस FREE\n🛍️ 3 साड़ी पर 10% की छूट\n⏰ Limited time offer!\n\n*मनभावन वस्त्रालय* में आएं 👘` },
+  { title: '🎂 Birthday Wishes', body: `जन्मदिन मुबारक हो! 🎂🎊\nआपके जन्मदिन पर मनभावन वस्त्रालय की तरफ से एक खास तोहफा:\n🎁 आज दुकान पर आएं और 10% Special Birthday Discount पाएं!\n\nढेर सारी शुभकामनाएं! 💐` },
+  { title: '📢 Sale Announcement', body: `🔥 Stock Clearance SALE 🔥\nमनभावन वस्त्रालय में बड़ी छूट!\n✅ चुनिंदा साड़ियाँ — 20-30% OFF\n✅ सीमित stock — पहले आएं, पहले पाएं!\n📅 इस हफ्ते के अंत तक!\n\n*मनभावन वस्त्रालय* 👘` },
+  { title: '🔁 30 दिन बाद Follow-up', body: `नमस्ते! 🙏\nआपको देखे काफी दिन हो गए!\nआपकी पसंद की नई साड़ियाँ आई हैं 👘\n\nआइए एक बार देखिए — आपको ज़रूर पसंद आएगी!\n\n*मनभावन वस्त्रालय* ❤️` },
+  { title: '💍 शादी Season', body: `शादी का सीजन आ गया! 💍\nमनभावन वस्त्रालय में है:\n👘 Bridal Silk Collection\n👘 Heavy Banarasi\n👘 Designer Lehenga Saree\n💰 ₹2,000 से ₹15,000 तक\n📍 Advance booking available!\n\n*मनभावन वस्त्रालय* 👘` },
+  { title: '⭐ Review Request', body: `नमस्ते! 🙏\nउम्मीद है आपकी साड़ी बहुत पसंद आई होगी!\nअगर आपको हमारी service अच्छी लगी तो:\n⭐ Google पर एक review ज़रूर दें!\n\nयह हमें और बेहतर बनाने में मदद करता है। 🙏\n*मनभावन वस्त्रालय*` },
+];
+
+function renderWATemplates() {
+  document.getElementById('waTemplates').innerHTML = WA_TEMPLATES.map((t,i) => `
+    <div class="wa-template">
+      <div class="wa-template-title">${t.title}</div>
+      <div class="wa-template-body">${t.body}</div>
+      <button class="wa-copy-btn" onclick="copyWA(${i})">Copy</button>
+    </div>`).join('');
+}
+
+function copyWA(i) {
+  navigator.clipboard.writeText(WA_TEMPLATES[i].body).then(() => showToast('✅ Message Copy हो गया!'));
+}
+
+// ═══════════════════════════════════════════════════════════
+// DASHBOARD REFRESH
+// ═══════════════════════════════════════════════════════════
+function refreshDashboard() {
+  const { sales, stock, customers, settings } = getData();
+  const cm = currentMonth();
+  const todaySales   = sales.filter(s => s.date === today()).reduce((a,s) => a+s.amount, 0);
+  const monthSales   = sales.filter(s => monthKey(s.date) === cm).reduce((a,s) => a+s.amount, 0);
+  const monthExp     = getData().expenses.filter(e => monthKey(e.date) === cm).reduce((a,e) => a+e.amount, 0);
+  const target       = settings.dailyTarget || 7200;
+  const pct          = Math.min(Math.round(todaySales / target * 100), 100);
+  const remaining    = Math.max(target - todaySales, 0);
+
+  document.getElementById('todaySalesAmt').textContent    = fmt(todaySales);
+  document.getElementById('todayTargetAmt').textContent   = fmt(target);
+  document.getElementById('todayProgressBar').style.width = pct + '%';
+  document.getElementById('todayProgressBar').className   = 'progress-fill' + (pct >= 100 ? ' over' : '');
+  document.getElementById('todayProgressPct').textContent = pct + '%';
+  document.getElementById('todayRemaining').textContent   = pct >= 100 ? '🎉 Target पूरा!' : 'बाकी: ' + fmt(remaining);
+  document.getElementById('todayRemaining').style.color   = pct >= 100 ? 'var(--green)' : 'var(--red)';
+
+  const avg = settings.avgPrice || 1200;
+  const needed = remaining > 0 ? Math.ceil(remaining / avg) : 0;
+  document.getElementById('sareesNeeded').textContent = needed > 0 ? `💡 अभी ${needed} और साड़ी बेचनी होगी (₹${avg}/साड़ी पर)` : '';
+
+  document.getElementById('monthSales').textContent    = fmt(monthSales);
+  document.getElementById('monthProfit').textContent   = fmt(monthSales - monthExp);
+  document.getElementById('totalCustomers').textContent = customers.length;
+  document.getElementById('totalStock').textContent    = stock.reduce((a,s)=>a+s.qty,0);
+
+  // Recent sales
+  const recent = sales.slice(0,5);
+  const rEl = document.getElementById('recentSalesList');
+  if (recent.length === 0) {
+    rEl.innerHTML = '<div class="empty-state"><div class="emoji">📋</div><p>अभी कोई बिक्री नहीं<br>नीचे + बटन से जोड़ें</p></div>';
+  } else {
+    rEl.innerHTML = recent.map(s => `
+      <div class="list-item">
+        <div class="list-icon" style="background:var(--blush)">👘</div>
+        <div class="list-info">
+          <div class="list-name">${s.note || s.count+' साड़ी बेची'}</div>
+          <div class="list-sub">${s.date} • ${s.count} साड़ी</div>
+        </div>
+        <div class="list-right"><div class="list-amount">${fmt(s.amount)}</div></div>
+      </div>`).join('');
+  }
+
+  // Smart tips
+  const tips = [];
+  const todayDay = new Date().getDay();
+  if ([1,2].includes(todayDay)) tips.push('📱 सोमवार/मंगलवार slow होते हैं — आज WhatsApp broadcast करें!');
+  if (stock.filter(s => daysSince(s.addedDate) > 45 && s.qty > 0).length > 0) tips.push('⚠️ Dead stock है — discount देकर आज ही निकालें!');
+  if (customers.filter(c => daysSince(c.lastVisit) > 30).length > 0) tips.push('⏰ कुछ ग्राहक 30+ दिनों से नहीं आए — follow-up करें!');
+  if (todaySales === 0) tips.push('🎯 आज अभी तक कोई बिक्री नहीं — WhatsApp पर नई साड़ी की फोटो भेजें!');
+  if (pct >= 100) tips.push('🎉 बधाई! आज का target पूरा हो गया! कल के लिए भी तैयार रहें!');
+  document.getElementById('smartTips').innerHTML = tips.length
+    ? tips.map(t => `<div class="alert alert-warning" style="margin-bottom:6px;">${t}</div>`).join('')
+    : '<div class="alert alert-success">✅ सब कुछ ठीक लग रहा है! अच्छा काम जारी रखें!</div>';
+
+  // Dashboard alerts
+  const bdays = getData().customers.filter(c => c.birthday && checkBirthdayThisWeek(c.birthday));
+  let alerts = '';
+  if (bdays.length) alerts += `<div class="alert alert-success">🎂 इस हफ्ते Birthday: <b>${bdays.map(c=>c.name).join(', ')}</b></div>`;
+  document.getElementById('dashAlerts').innerHTML = alerts;
+
+  renderWeeklyChart();
+}
+
+// ═══════════════════════════════════════════════════════════
+// CHARTS
+// ═══════════════════════════════════════════════════════════
+let weeklyChartInst, monthlyChartInst, expChartInst;
+
+function renderWeeklyChart() {
+  const { sales } = getData();
+  const days   = ['रवि','सोम','मंगल','बुध','गुरु','शुक्र','शनि'];
+  const labels = [], data = [];
+  const now = new Date();
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(now); d.setDate(now.getDate() - i);
+    const ds = d.toISOString().slice(0,10);
+    labels.push(days[d.getDay()]);
+    data.push(sales.filter(s => s.date === ds).reduce((a,s) => a+s.amount, 0));
+  }
+  const ctx = document.getElementById('weeklyChart').getContext('2d');
+  if (weeklyChartInst) weeklyChartInst.destroy();
+  weeklyChartInst = new Chart(ctx, {
+    type: 'bar',
+    data: { labels, datasets: [{ data, backgroundColor: data.map((v,i) => i===6?'#6B0F1A':'#FAD7DE'), borderRadius: 6, borderSkipped: false }] },
+    options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { callback: v => '₹'+v.toLocaleString('en-IN'), font: { size: 10 } } }, x: { ticks: { font: { size: 11 } } } }, maintainAspectRatio: true }
+  });
+}
+
+function renderMonthlyChart() {
+  const { sales } = getData();
+  const months = ['जन','फर','मार','अप्र','मई','जून','जुल','अग','सित','अक्ट','नव','दिस'];
+  const data = months.map((_,i) => {
+    const mk = new Date().getFullYear() + '-' + String(i+1).padStart(2,'0');
+    return sales.filter(s => monthKey(s.date) === mk).reduce((a,s) => a+s.amount, 0);
+  });
+  const ctx = document.getElementById('monthlyChart')?.getContext('2d');
+  if (!ctx) return;
+  if (monthlyChartInst) monthlyChartInst.destroy();
+  const curMo = new Date().getMonth();
+  monthlyChartInst = new Chart(ctx, {
+    type: 'bar',
+    data: { labels: months, datasets: [{ data, backgroundColor: data.map((_,i) => i===curMo?'#6B0F1A':'#FAD7DE'), borderRadius: 6, borderSkipped: false }] },
+    options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { callback: v => '₹'+v.toLocaleString('en-IN'), font: { size: 9 } } }, x: { ticks: { font: { size: 10 } } } }, maintainAspectRatio: true }
+  });
+}
+
+function renderExpenseChart() {
+  const expenses = getData().expenses.filter(e => monthKey(e.date) === currentMonth());
+  const byType = {};
+  expenses.forEach(e => { byType[e.type] = (byType[e.type]||0) + e.amount; });
+  const ctx = document.getElementById('expenseChart')?.getContext('2d');
+  if (!ctx) return;
+  if (expChartInst) expChartInst.destroy();
+  if (!Object.keys(byType).length) return;
+  expChartInst = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: Object.keys(byType).map(k => expLabels[k]||k),
+      datasets: [{ data: Object.values(byType), backgroundColor: ['#6B0F1A','#C9972E','#1A4A7A','#2E6B3E','#8B3A00','#5C0A7A','#B5384A'], borderWidth: 0 }]
+    },
+    options: { plugins: { legend: { position: 'bottom', labels: { font: { size: 11 }, padding: 8 } } }, maintainAspectRatio: true }
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+// MODAL
+// ═══════════════════════════════════════════════════════════
+function openQuickAdd() { document.getElementById('quickAddModal').classList.add('open'); document.getElementById('quickAmount').focus(); }
+function closeQuickAdd(e) { if (!e || e.target === document.getElementById('quickAddModal')) document.getElementById('quickAddModal').classList.remove('open'); }
+
+// ═══════════════════════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════════════════════
+function showToast(msg) {
+  const t = document.createElement('div');
+  t.style.cssText = 'position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--maroon-dark);color:white;padding:10px 20px;border-radius:8px;font-size:13px;z-index:300;box-shadow:0 4px 16px rgba(0,0,0,0.3);white-space:nowrap;';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 2500);
+}
+
+// ═══════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════
+
+// ── Data Export ───────────────────────────────────────────
+function exportData() {
+  const data = {
+    sales:     JSON.parse(localStorage.getItem('mv_sales')     || '[]'),
+    stock:     JSON.parse(localStorage.getItem('mv_stock')     || '[]'),
+    customers: JSON.parse(localStorage.getItem('mv_customers') || '[]'),
+    expenses:  JSON.parse(localStorage.getItem('mv_expenses')  || '[]'),
+    settings:  JSON.parse(localStorage.getItem('mv_settings')  || '{}'),
+    exported:  new Date().toISOString(),
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'manabhavan_data_' + new Date().toISOString().slice(0,10) + '.json';
+  a.click();
+  showToast('✅ Data export हो गया!');
+}
+
+function clearAllData() {
+  if (!confirm('⚠️ सारा data delete होगा — बिल्री, स्टॉक, ग्राहक सब। पक्का है?')) return;
+  if (!confirm('दोबारा confirm करें — यह undo नहीं होगा!')) return;
+  ['mv_sales','mv_stock','mv_customers','mv_expenses','mv_photos'].forEach(k => localStorage.removeItem(k));
+  showToast('✅ Data delete हो गया');
+  refreshDashboard();
+}
+
+function populateWACustomerSelect() {
+  const customers = JSON.parse(localStorage.getItem('mv_customers') || '[]');
+  const sel = document.getElementById('waCustomerSelect');
+  if (!sel) return;
+  sel.innerHTML = customers.length
+    ? customers.map(c => `<option value="${c.id}">${c.name} — ${c.phone}</option>`).join('')
+    : '<option value="">कोई ग्राहक नहीं (पहले जोड़ें)</option>';
+}
+
+function sendToSelectedCustomer() {
+  const custId   = parseInt(document.getElementById('waCustomerSelect')?.value);
+  const tmplIdx  = parseInt(document.getElementById('waTemplateSelect')?.value || '0');
+  if (!custId) { showToast('❌ पहले ग्राहक चुनें'); return; }
+  sendWhatsAppToCustomer(custId, tmplIdx);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  initHeader();
+  initQuote();
+
+  // Set default dates
+  ['saleDate','expDate'].forEach(id => { const el = document.getElementById(id); if (el) el.value = today(); });
+
+  // Load saved settings
+  const s = getData().settings;
+  if (document.getElementById('dailyTarget'))  document.getElementById('dailyTarget').value  = s.dailyTarget || 7200;
+  if (document.getElementById('avgSareePrice')) document.getElementById('avgSareePrice').value = s.avgPrice    || 1200;
+
+  refreshDashboard();
+  renderWATemplates();
+});
+</script>
+
+<!-- ═══════════════════════════════════════════════════════
+     PWA ENGINE — Service Worker, Notifications, Camera, Install
+═══════════════════════════════════════════════════════ -->
+<script>
+// ── Service Worker Registration ───────────────────────────
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', async () => {
+    try {
+      const reg = await navigator.serviceWorker.register('./sw.js', { scope: './' });
+      console.log('SW registered:', reg.scope);
+      window._swReg = reg;
+    } catch (e) { console.log('SW failed:', e); }
+  });
+}
+
+// ── PWA Install Prompt ────────────────────────────────────
+let deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  document.getElementById('installBanner').style.display = 'flex';
+});
+
+async function installApp() {
+  if (!deferredPrompt) { showToast('ℹ️ Browser menu > Add to Home Screen'); return; }
+  deferredPrompt.prompt();
+  const { outcome } = await deferredPrompt.userChoice;
+  if (outcome === 'accepted') { showToast('✅ App install हो रहा है!'); }
+  deferredPrompt = null;
+  document.getElementById('installBanner').style.display = 'none';
+}
+
+window.addEventListener('appinstalled', () => {
+  showToast('🎉 App install हो गया!');
+  document.getElementById('installBanner').style.display = 'none';
+});
+
+// ── Push Notifications ────────────────────────────────────
+async function requestNotificationPermission() {
+  if (!('Notification' in window)) {
+    showToast('❌ यह browser notifications support नहीं करता');
+    return false;
+  }
+  if (Notification.permission === 'granted') return true;
+  const permission = await Notification.requestPermission();
+  if (permission === 'granted') {
+    showToast('✅ Notifications चालू हो गए!');
+    scheduleReminders();
+    return true;
+  }
+  showToast('❌ Notifications की permission नहीं मिली');
+  return false;
+}
+
+function scheduleReminders() {
+  const now = new Date();
+  const settings = JSON.parse(localStorage.getItem('mv_settings') || '{}');
+  const target = settings.dailyTarget || 7200;
+
+  // Evening reminder at 6 PM
+  const evening = new Date(now); evening.setHours(18, 0, 0, 0);
+  let eveningDelay = evening - now;
+  if (eveningDelay < 0) eveningDelay += 86400000;
+
+  // Morning reminder at 9 AM
+  const morning = new Date(now); morning.setHours(9, 0, 0, 0);
+  let morningDelay = morning - now;
+  if (morningDelay < 0) morningDelay += 86400000;
+
+  if (navigator.serviceWorker.controller) {
+    navigator.serviceWorker.controller.postMessage({
+      type: 'SCHEDULE_NOTIFICATION',
+      title: '🪷 आज का target check करें!',
+      body: `आज का target है ₹${target.toLocaleString('en-IN')} — कितना हुआ? दुकान का हिसाब लिखें!`,
+      delay: eveningDelay,
+      tag: 'evening-reminder'
+    });
+    navigator.serviceWorker.controller.postMessage({
+      type: 'SCHEDULE_NOTIFICATION',
+      title: '☀️ शुभ प्रभात! मनभावन वस्त्रालय',
+      body: 'आज का target: ₹' + target.toLocaleString('en-IN') + ' — नई साड़ी की फोटो WhatsApp पर भेजना न भूलें!',
+      delay: morningDelay,
+      tag: 'morning-reminder'
+    });
+  }
+}
+
+// Festival notifications
+function checkUpcomingFestivalAlert() {
+  const festivals = [
+    { name:'नवरात्रि 🪷', md:'10-02' }, { name:'दिवाली 🪔', md:'11-01' },
+    { name:'ईद 🌙', md:'03-30' },       { name:'होली 🎨', md:'03-14' },
+    { name:'Raksha Bandhan 🎗️', md:'08-09' },
+  ];
+  const now = new Date();
+  festivals.forEach(f => {
+    const [m, d] = f.md.split('-').map(Number);
+    let yr = now.getFullYear();
+    let fest = new Date(yr, m-1, d);
+    if (fest < now) fest = new Date(yr+1, m-1, d);
+    const days = Math.ceil((fest - now) / 86400000);
+    if (days === 21) {
+      setTimeout(() => {
+        new Notification('🎉 ' + f.name + ' में 3 हफ्ते बाकी!', {
+          body: 'अभी stock तैयार करें — last minute में अच्छा माल नहीं मिलता!',
+          icon: './icons/icon-192.png'
+        });
+      }, 1000);
+    }
+  });
+}
+
+// ── Camera — Saree Photo ──────────────────────────────────
+let cameraStream = null;
+
+async function openCamera() {
+  const modal = document.getElementById('cameraModal');
+  modal.classList.add('open');
+  try {
+    cameraStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
+    });
+    document.getElementById('cameraPreview').srcObject = cameraStream;
+  } catch (e) {
+    showToast('❌ Camera permission चाहिए — Settings में allow करें');
+    closeCameraModal();
+  }
+}
+
+function capturePhoto() {
+  const video  = document.getElementById('cameraPreview');
+  const canvas = document.getElementById('cameraCanvas');
+  canvas.width  = video.videoWidth;
+  canvas.height = video.videoHeight;
+  canvas.getContext('2d').drawImage(video, 0, 0);
+  const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+  closeCameraModal();
+  savePhoto(dataUrl);
+}
+
+function closeCameraModal() {
+  if (cameraStream) { cameraStream.getTracks().forEach(t => t.stop()); cameraStream = null; }
+  document.getElementById('cameraModal').classList.remove('open');
+}
+
+function savePhoto(dataUrl) {
+  const photos = JSON.parse(localStorage.getItem('mv_photos') || '[]');
+  const name = prompt('साड़ी का नाम / नोट:', 'नई साड़ी ' + new Date().toLocaleDateString('en-IN'));
+  if (name === null) return;
+  photos.unshift({ id: Date.now(), name, url: dataUrl, date: new Date().toISOString().slice(0,10) });
+  if (photos.length > 50) photos.splice(50); // keep last 50
+  localStorage.setItem('mv_photos', JSON.stringify(photos));
+  showToast('📸 फोटो save हो गई!');
+  renderPhotoGallery();
+}
+
+function deletePhoto(id) {
+  const photos = JSON.parse(localStorage.getItem('mv_photos') || '[]').filter(p => p.id !== id);
+  localStorage.setItem('mv_photos', JSON.stringify(photos));
+  renderPhotoGallery();
+}
+
+function renderPhotoGallery() {
+  const photos = JSON.parse(localStorage.getItem('mv_photos') || '[]');
+  const el = document.getElementById('photoGallery');
+  if (!el) return;
+  if (!photos.length) {
+    el.innerHTML = '<div class="empty-state"><div class="emoji">📸</div><p>अभी कोई फोटो नहीं<br>Camera बटन से साड़ी की फोटो लें</p></div>';
+    return;
+  }
+  el.innerHTML = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">' +
+    photos.map(p => `
+      <div style="position:relative;border-radius:10px;overflow:hidden;border:1.5px solid var(--border);">
+        <img src="${p.url}" style="width:100%;height:110px;object-fit:cover;display:block;">
+        <div style="padding:6px 8px;background:white;">
+          <div style="font-size:11px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.name}</div>
+          <div style="font-size:10px;color:var(--text-muted);">${p.date}</div>
+        </div>
+        <div style="display:flex;gap:4px;padding:0 8px 8px;">
+          <button onclick="sharePhoto(${p.id})" style="flex:1;padding:4px;background:var(--green);color:white;border:none;border-radius:5px;font-size:10px;cursor:pointer;">WhatsApp</button>
+          <button onclick="deletePhoto(${p.id})" style="padding:4px 8px;background:var(--red-light);color:var(--red);border:none;border-radius:5px;font-size:10px;cursor:pointer;">🗑️</button>
+        </div>
+      </div>`).join('') + '</div>';
+}
+
+async function sharePhoto(id) {
+  const photos = JSON.parse(localStorage.getItem('mv_photos') || '[]');
+  const photo = photos.find(p => p.id === id);
+  if (!photo) return;
+  if (navigator.share) {
+    try {
+      const response = await fetch(photo.url);
+      const blob = await response.blob();
+      const file = new File([blob], 'saree.jpg', { type: 'image/jpeg' });
+      await navigator.share({ title: photo.name, text: '👘 ' + photo.name + '\nमनभावन वस्त्रालय', files: [file] });
+    } catch (e) { showToast('❌ Share नहीं हो सका'); }
+  } else {
+    const a = document.createElement('a'); a.href = photo.url; a.download = photo.name + '.jpg'; a.click();
+  }
+}
+
+// ── WhatsApp Direct Send ──────────────────────────────────
+function sendWhatsApp(phone, message) {
+  const cleanPhone = phone.replace(/\D/g,'');
+  const fullPhone  = cleanPhone.startsWith('91') ? cleanPhone : '91' + cleanPhone;
+  const encoded    = encodeURIComponent(message);
+  window.open('https://wa.me/' + fullPhone + '?text=' + encoded, '_blank');
+}
+
+function sendWhatsAppToCustomer(custId, templateIdx) {
+  const customers = JSON.parse(localStorage.getItem('mv_customers') || '[]');
+  const cust = customers.find(c => c.id === custId);
+  if (!cust) return;
+  const templates = [
+    `नमस्ते ${cust.name} जी! 🙏\nमनभावन वस्त्रालय में नई साड़ियाँ आई हैं — आपको ज़रूर पसंद आएंगी! आइए एक बार 👘`,
+    `नमस्ते ${cust.name} जी! 🙏\nआपको देखे काफी दिन हो गए! नई collection आई है — आइए एक बार! मनभावन वस्त्रालय ❤️`,
+    `🎂 जन्मदिन मुबारक हो ${cust.name} जी! 🎊\nआज दुकान पर आएं और 10% Special Birthday Discount पाएं! मनभावन वस्त्रालय 🪷`,
+  ];
+  sendWhatsApp(cust.phone, templates[templateIdx] || templates[0]);
+}
+
+// ── Notification Settings UI ──────────────────────────────
+function initNotificationUI() {
+  const permEl = document.getElementById('notifPermStatus');
+  if (!permEl) return;
+  if (!('Notification' in window)) {
+    permEl.textContent = '❌ Browser support नहीं है';
+    return;
+  }
+  const status = { granted: '✅ चालू है', denied: '❌ Block है — Settings से Allow करें', default: '⏳ Permission नहीं ली' };
+  permEl.textContent = status[Notification.permission] || '';
+}
+
+// ── Online/Offline Indicator ──────────────────────────────
+function updateOnlineStatus() {
+  const el = document.getElementById('onlineIndicator');
+  if (!el) return;
+  if (navigator.onLine) {
+    el.innerHTML = '<span style="color:#27ae60;font-size:11px;">● Online</span>';
+  } else {
+    el.innerHTML = '<span style="color:#e74c3c;font-size:11px;">● Offline</span>';
+  }
+}
+window.addEventListener('online',  updateOnlineStatus);
+window.addEventListener('offline', updateOnlineStatus);
+
+// ── Init all PWA features ─────────────────────────────────
+
+// ── Data Export ───────────────────────────────────────────
+function exportData() {
+  const data = {
+    sales:     JSON.parse(localStorage.getItem('mv_sales')     || '[]'),
+    stock:     JSON.parse(localStorage.getItem('mv_stock')     || '[]'),
+    customers: JSON.parse(localStorage.getItem('mv_customers') || '[]'),
+    expenses:  JSON.parse(localStorage.getItem('mv_expenses')  || '[]'),
+    settings:  JSON.parse(localStorage.getItem('mv_settings')  || '{}'),
+    exported:  new Date().toISOString(),
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'manabhavan_data_' + new Date().toISOString().slice(0,10) + '.json';
+  a.click();
+  showToast('✅ Data export हो गया!');
+}
+
+function clearAllData() {
+  if (!confirm('⚠️ सारा data delete होगा — बिल्री, स्टॉक, ग्राहक सब। पक्का है?')) return;
+  if (!confirm('दोबारा confirm करें — यह undo नहीं होगा!')) return;
+  ['mv_sales','mv_stock','mv_customers','mv_expenses','mv_photos'].forEach(k => localStorage.removeItem(k));
+  showToast('✅ Data delete हो गया');
+  refreshDashboard();
+}
+
+function populateWACustomerSelect() {
+  const customers = JSON.parse(localStorage.getItem('mv_customers') || '[]');
+  const sel = document.getElementById('waCustomerSelect');
+  if (!sel) return;
+  sel.innerHTML = customers.length
+    ? customers.map(c => `<option value="${c.id}">${c.name} — ${c.phone}</option>`).join('')
+    : '<option value="">कोई ग्राहक नहीं (पहले जोड़ें)</option>';
+}
+
+function sendToSelectedCustomer() {
+  const custId   = parseInt(document.getElementById('waCustomerSelect')?.value);
+  const tmplIdx  = parseInt(document.getElementById('waTemplateSelect')?.value || '0');
+  if (!custId) { showToast('❌ पहले ग्राहक चुनें'); return; }
+  sendWhatsAppToCustomer(custId, tmplIdx);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  updateOnlineStatus();
+  initNotificationUI();
+  renderPhotoGallery();
+  if (Notification.permission === 'granted') {
+    scheduleReminders();
+    checkUpcomingFestivalAlert();
+  }
+  // Handle hash-based deep links
+  if (location.hash) {
+    const tab = location.hash.replace('#','');
+    if (['sales','stock','customers','expenses','festival','whatsapp','photos'].includes(tab)) {
+      setTimeout(() => switchTab(tab), 200);
+    }
+  }
+});
+</script>
+</body>
+</html>
